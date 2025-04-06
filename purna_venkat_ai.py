@@ -13,6 +13,7 @@ st.set_page_config(
 )
 
 # --- Initialize Gemini Client ---
+
 genai.configure(api_key=os.environ['GEMINI_API_KEY'])  # Standard environment variable name  # Make sure to set this in Streamlit Secrets
 
 # --- Custom CSS Styling ---
@@ -119,7 +120,7 @@ if prompt := st.chat_input("Type your message..."):
     
     # Generate response
     try:
-        model = genai.GenerativeModel('gemini-pro')
+        model = genai.GenerativeModel('gemini-1.5-pro-latest')
         response = model.generate_content(prompt)
         ai_response = response.text
     except Exception as e:
