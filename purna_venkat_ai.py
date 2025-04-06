@@ -13,7 +13,7 @@ st.set_page_config(
 )
 
 # --- Initialize Gemini Client ---
-genai.configure(api_key=os.environ['AIzaSyCgryGGlwzincJg3x18S-JQfEz6t_Xmvv8'])  # Make sure to set this in Streamlit Secrets
+genai.configure(api_key=os.environ['GEMINI_API_KEY'])  # Standard environment variable name  # Make sure to set this in Streamlit Secrets
 
 # --- Custom CSS Styling ---
 st.markdown("""
