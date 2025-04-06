@@ -1,9 +1,10 @@
+import os
 import streamlit as st
-from google import genai
+import google.generativeai as genai  # Correct import
 import time
 import random
 
-# Set up the page FIRST (must be first Streamlit command)
+# --- Page Configuration (MUST BE FIRST) ---
 st.set_page_config(
     page_title="Purna Venkat AI",
     page_icon="✨",
@@ -11,7 +12,10 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# Then add your custom CSS
+# --- Initialize Gemini Client ---
+genai.configure(api_key=os.environ['AIzaSyCgryGGlwzincJg3x18S-JQfEz6t_Xmvv8'])  # Make sure to set this in Streamlit Secrets
+
+# --- Custom CSS Styling ---
 st.markdown("""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap');
@@ -28,35 +32,7 @@ st.markdown("""
     }
     
     .stApp {
-        background: linear-gradient(135deg, #0000FF 70%, #c3cfe2 12%);
-    }
-    
-    .stChatInput {
-        border-radius: 15px !important;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1) !important;
-    }
-    
-    .stChatMessage {
-        border-radius: 15px !important;
-        padding: 12px 16px !important;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
-        margin-bottom: 16px !important;
-    }
-    
-    [data-testid="stChatMessageContent"] {
-        font-size: 1rem !important;
-    }
-    
-    .user-message {
-        background-color: var(--primary) !important;
-        color: white !important;
-        margin-left: 20% !important;
-    }
-    
-    .assistant-message {
-        background-color: white !important;
-        margin-right: 20% !important;
-        border: 1px solid #e0e0e0 !important;
+        background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
     }
     
     .typing-animation {
@@ -99,87 +75,38 @@ st.markdown("""
         margin-bottom: 2rem;
         box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     }
-    
-    .logo {
-        font-weight: 600;
-        font-size: 1.8rem;
-        display: flex;
-        align-items: center;
-        gap: 10px;
-    }
-    
-    .logo-icon {
-        font-size: 2rem;
-    }
-    
-    .welcome-text {
-        animation: fadeIn 1s ease-in;
-    }
-    
-    @keyframes fadeIn {
-        from { opacity: 0; transform: translateY(10px); }
-        to { opacity: 1; transform: translateY(0); }
-    }
 </style>
 """, unsafe_allow_html=True)
 
-# Initialize the client
-client = genai.Client(api_key="AIzaSyCgryGGlwzincJg3x18S-JQfEz6t_Xmvv8")
-
-# Header with logo
+# --- App Header ---
 st.markdown("""
 <div class="header">
-    <div class="logo">
-        <span class="logo-icon">✨</span>
+    <div style="font-weight: 600; font-size: 1.8rem; display: flex; align-items: center; gap: 10px;">
+        <span>✨</span>
         <span>Purna Venkat AI</span>
     </div>
 </div>
 """, unsafe_allow_html=True)
 
-# Initialize chat history
+# --- Initialize Chat ---
 if "messages" not in st.session_state:
-    st.session_state.messages = [{
-        "role": "assistant",
-        "content": "Namaste! I'm Purna Venkat AI, your intelligent assistant. How may I serve you today?",
-        "animation": "fadeIn"
-    }]
+    st.session_state.messages = [
+        {"role": "assistant", "content": "Namaste! I'm Purna Venkat AI. How may I help you today?"}
+    ]
 
-# Display chat messages
+# --- Display Messages ---
 for message in st.session_state.messages:
     with st.chat_message(message["role"]):
-        if "animation" in message and message["animation"] == "typing":
-            st.markdown("""
-            <div class="typing-animation">
-                <span></span>
-                <span></span>
-                <span></span>
-            </div>
-            """, unsafe_allow_html=True)
-        else:
-            st.markdown(message["content"])
+        st.markdown(message["content"])
 
-# Accept user input
-if prompt := st.chat_input("Type your message here..."):
-    # Add user message to chat history
-    st.session_state.messages.append({
-        "role": "user",
-        "content": prompt,
-        "animation": "fadeIn"
-    })
-    
-    # Display user message
+# --- Chat Input ---
+if prompt := st.chat_input("Type your message..."):
+    # Add user message
+    st.session_state.messages.append({"role": "user", "content": prompt})
     with st.chat_message("user"):
         st.markdown(prompt)
     
-    # Add temporary typing indicator
-    typing_message = {
-        "role": "assistant",
-        "content": "",
-        "animation": "typing"
-    }
-    st.session_state.messages.append(typing_message)
-    
-    # Display typing animation
+    # Show typing indicator
     with st.chat_message("assistant"):
         typing_placeholder = st.empty()
         typing_placeholder.markdown("""
@@ -190,35 +117,18 @@ if prompt := st.chat_input("Type your message here..."):
         </div>
         """, unsafe_allow_html=True)
     
-    # Simulate thinking time (minimum 0.5s to 1.5s)
-    thinking_time = random.uniform(0.5, 1.5)
-    time.sleep(thinking_time)
+    # Generate response
+    try:
+        model = genai.GenerativeModel('gemini-pro')
+        response = model.generate_content(prompt)
+        ai_response = response.text
+    except Exception as e:
+        ai_response = f"Sorry, I encountered an error: {str(e)}"
     
-    # Get response from Gemini
-    response = client.models.generate_content(
-        model="gemini-1.5-pro-latest",
-        contents=prompt
-    )
-    
-    # Remove typing indicator
-    st.session_state.messages.remove(typing_message)
-    
-    # Add assistant response to chat history
-    assistant_message = {
-        "role": "assistant",
-        "content": response.text,
-        "animation": "fadeIn"
-    }
-    st.session_state.messages.append(assistant_message)
-    
-    # Display assistant response with animation
+    # Remove typing indicator and show response
+    typing_placeholder.empty()
     with st.chat_message("assistant"):
-        response_placeholder = st.empty()
-        response_placeholder.markdown(response.text)
+        st.markdown(ai_response)
     
-    # Scroll to bottom
-    st.markdown("""
-    <script>
-        window.parent.document.querySelector('section.main').scrollTo(0, window.parent.document.querySelector('section.main').scrollHeight);
-    </script>
-    """, unsafe_allow_html=True)
+    # Add to conversation history
+    st.session_state.messages.append({"role": "assistant", "content": ai_response})
