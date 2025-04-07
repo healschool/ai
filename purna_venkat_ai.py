@@ -7,8 +7,8 @@ from streamlit.components.v1 import html
 
 # --- Page Configuration ---
 st.set_page_config(
-    page_title="Purna Venkat AI",
-    page_icon="✨",
+    page_title="Purna Venkat",
+    page_icon="😜",
     layout="wide",
     initial_sidebar_state="collapsed"
 )
@@ -35,7 +35,7 @@ st.markdown("""
     }
     
     .stApp {
-        background: linear-gradient(135deg, #f5f7fa 0%, #e3e9f2 100%);
+        background: linear-gradient(135deg, #000000 50%, #000080 50%);
         background-attachment: fixed;
     }
     
@@ -175,7 +175,7 @@ html(particles_js, height=0)
 st.markdown("""
 <div class="header">
     <div style="font-weight: 700; font-size: 2rem; display: flex; align-items: center; gap: 15px;">
-        <span style="font-size: 2.5rem;">✨</span>
+        <span style="font-size: 2.5rem;">😜</span>
         <span style="text-shadow: 0 2px 4px rgba(0,0,0,0.1);">Purna Venkat AI</span>
     </div>
     <div style="font-weight: 300; font-size: 1rem; margin-top: 0.5rem;">
@@ -188,7 +188,7 @@ st.markdown("""
 if "messages" not in st.session_state:
     st.session_state.messages = [{
         "role": "assistant", 
-        "content": "Namaste! I'm Purna Venkat AI, the world's most advanced AI assistant. How may I enlighten you today?",
+        "content": "Namaste! nenu Purna Venkat,meku emina kavali ante chepandi. nenu meku help chesta?",
         "animation": "message-entrance"
     }]
 
@@ -201,7 +201,7 @@ for message in st.session_state.messages:
             st.markdown(message["content"])
 
 # --- Premium Chat Input ---
-if prompt := st.chat_input("Ask the world's smartest AI..."):
+if prompt := st.chat_input("ekada adangadi nanu..."):
     # Add user message with animation
     st.session_state.messages.append({
         "role": "user",
