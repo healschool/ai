@@ -7,7 +7,7 @@ import random
 # --- Page Configuration (MUST BE FIRST) ---
 st.set_page_config(
     page_title="Purna Venkat AI",
-    page_icon="✨",
+    page_icon="😂",
     layout="wide",
     initial_sidebar_state="collapsed"
 )
