@@ -35,7 +35,7 @@ st.markdown("""
     }
     
     .stApp {
-        background: linear-gradient(135deg, #000000 50%, #000080 50%);
+        background: linear-gradient(135deg, #f5f7fa 0%, #e3e9f2 100%);
         background-attachment: fixed;
     }
     
@@ -129,16 +129,6 @@ st.markdown("""
         background: linear-gradient(var(--primary), var(--secondary));
         border-radius: 10px;
     }
-    
-    /* Floating particles background */
-    #particles-js {
-        position: fixed;
-        width: 100%;
-        height: 100%;
-        z-index: -1;
-        top: 0;
-        left: 0;
-    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -176,7 +166,7 @@ st.markdown("""
 <div class="header">
     <div style="font-weight: 700; font-size: 2rem; display: flex; align-items: center; gap: 15px;">
         <span style="font-size: 2.5rem;">😜</span>
-        <span style="text-shadow: 0 2px 4px rgba(0,0,0,0.1);">Purna Venkat AI</span>
+        <span style="text-shadow: 0 2px 4px rgba(0,0,0,0.1);">Purna Venkat</span>
     </div>
     <div style="font-weight: 300; font-size: 1rem; margin-top: 0.5rem;">
         World's Most Advanced AI Assistant
@@ -188,7 +178,7 @@ st.markdown("""
 if "messages" not in st.session_state:
     st.session_state.messages = [{
         "role": "assistant", 
-        "content": "Namaste! nenu Purna Venkat,meku emina kavali ante chepandi. nenu meku help chesta?",
+        "content": "Namaste! Nenu Mee Purna Venkat,Meku Emina Kavali Ante Chepandi. Nenu Meku Help Chesta?",
         "animation": "message-entrance"
     }]
 
@@ -201,7 +191,7 @@ for message in st.session_state.messages:
             st.markdown(message["content"])
 
 # --- Premium Chat Input ---
-if prompt := st.chat_input("Me Burralo Amina Unte Ikkada Pettandi..."):
+if prompt := st.chat_input("Me Burralo Amina Questions Unte Ikkada Pettandi..."):
     # Add user message with animation
     st.session_state.messages.append({
         "role": "user",
@@ -224,17 +214,17 @@ if prompt := st.chat_input("Me Burralo Amina Unte Ikkada Pettandi..."):
         </div>
         """, unsafe_allow_html=True)
     
-    # Simulate thinking time with random delay
-    thinking_time = random.uniform(0.8, 1.8)
-    time.sleep(thinking_time)
-    
-    # Generate response
-    try:
-        model = genai.GenerativeModel('gemini-1.5-pro-latest')
-        response = model.generate_content(prompt)
-        ai_response = response.text
-    except Exception as e:
-        ai_response = f"Apologies, my quantum processors encountered a glitch: {str(e)}"
+    # Check if user is asking who created the AI
+    if any(phrase in prompt.lower() for phrase in ["who made you", "who created you", "who built you", "who developed you",'what is your name']):
+        ai_response = "I was created by Purna Venkat sir, the brilliant mind behind this advanced AI system."
+    else:
+        # Generate normal response
+        try:
+            model = genai.GenerativeModel('gemini-1.5-pro-latest')
+            response = model.generate_content(prompt)
+            ai_response = response.text
+        except Exception as e:
+            ai_response = f"Apologies, my quantum processors encountered a glitch: {str(e)}"
     
     # Remove typing indicator and show animated response
     typing_placeholder.empty()
