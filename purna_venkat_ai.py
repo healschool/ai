@@ -3,55 +3,18 @@ import streamlit as st
 import google.generativeai as genai
 import time
 import random
-import requests
 from streamlit.components.v1 import html
 
-# --- Page Configuration (MUST BE FIRST) ---
+# --- Page Configuration ---
 st.set_page_config(
-    page_title="Purna Venkat AI",
-    page_icon="✨",
+    page_title="Purna Venkat",
+    page_icon="😜",
     layout="wide",
     initial_sidebar_state="collapsed"
 )
 
-# --- AI Client Class (Handles API Fallbacks) ---
-class AIClient:
-    def __init__(self):
-        self.paid_api_key = os.getenv('GEMINI_API_KEY')
-        self.free_api_key = "AIzaSyCgryGGlwzincJg3x18S-JQfEz6t_Xmvv8"  # Replace with your free key
-        self.free_api_url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent"
-        
-    def generate_response(self, prompt):
-        # Special response for creator questions
-        creator_phrases = [
-            "who made you", "who created you", 
-            "who built you", "who developed you",
-            "who is your creator", "who designed you"
-        ]
-        if any(phrase in prompt.lower() for phrase in creator_phrases):
-            return "I was created by Purna Venkat sir, the brilliant visionary behind this AI system."
-        
-        # Try paid API first
-        if self.paid_api_key:
-            try:
-                genai.configure(api_key=self.paid_api_key)
-                model = genai.GenerativeModel('gemini-1.5-pro-latest')
-                response = model.generate_content(prompt)
-                return response.text
-            except Exception as e:
-                if "429" in str(e):
-                    time.sleep(5)  # Respect rate limits
-        
-        # Fallback to free API
-        try:
-            params = {'key': self.free_api_key}
-            payload = {"contents": [{"parts": [{"text": prompt}]}]}
-            response = requests.post(self.free_api_url, json=payload, params=params)
-            return response.json()['candidates'][0]['content']['parts'][0]['text']
-        except:
-            return "I'm currently at capacity. Please try again in a moment."
-
-ai_client = AIClient()
+# --- Initialize Gemini Client ---
+genai.configure(api_key=os.environ['GEMINI_API_KEY'])
 
 # --- Premium CSS Styling ---
 st.markdown("""
@@ -72,10 +35,11 @@ st.markdown("""
     }
     
     .stApp {
-        background: linear-gradient(135deg, #f5f7fa 0%, #e3e9f2 100%);
+        background: linear-gradient(135deg, #000000 50%, ##808080 50%);
         background-attachment: fixed;
     }
     
+    /* Floating animation for header */
     @keyframes float {
         0% { transform: translateY(0px); }
         50% { transform: translateY(-10px); }
@@ -90,8 +54,22 @@ st.markdown("""
         margin-bottom: 2rem;
         box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
         animation: float 6s ease-in-out infinite;
+        position: relative;
+        overflow: hidden;
     }
     
+    .header::before {
+        content: "";
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 70%);
+        transform: rotate(30deg);
+    }
+    
+    /* Advanced typing animation */
     .typing-animation {
         display: flex;
         gap: 5px;
@@ -110,15 +88,24 @@ st.markdown("""
         display: inline-block;
     }
     
-    .typing-dot:nth-child(1) { animation: pulse 1.2s infinite 0s; }
-    .typing-dot:nth-child(2) { animation: pulse 1.2s infinite 0.2s; }
-    .typing-dot:nth-child(3) { animation: pulse 1.2s infinite 0.4s; }
+    .typing-dot:nth-child(1) {
+        animation: pulse 1.2s infinite 0s;
+    }
+    
+    .typing-dot:nth-child(2) {
+        animation: pulse 1.2s infinite 0.2s;
+    }
+    
+    .typing-dot:nth-child(3) {
+        animation: pulse 1.2s infinite 0.4s;
+    }
     
     @keyframes pulse {
         0%, 100% { transform: scale(1); opacity: 0.6; }
         50% { transform: scale(1.2); opacity: 1; }
     }
     
+    /* Message animations */
     .message-entrance {
         animation: messageEntrance 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     }
@@ -127,34 +114,59 @@ st.markdown("""
         from { opacity: 0; transform: translateY(20px); }
         to { opacity: 1; transform: translateY(0); }
     }
+    
+    /* Custom scrollbar */
+    ::-webkit-scrollbar {
+        width: 8px;
+    }
+    
+    ::-webkit-scrollbar-track {
+        background: #f1f1f1;
+        border-radius: 10px;
+    }
+    
+    ::-webkit-scrollbar-thumb {
+        background: linear-gradient(var(--primary), var(--secondary));
+        border-radius: 10px;
+    }
 </style>
 """, unsafe_allow_html=True)
 
 # --- Floating Particles Background ---
-html("""
-<div id="particles-js"></div>
+particles_js = """
 <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
 <script>
-particlesJS("particles-js", {
-    "particles": {
-        "number": {"value": 80, "density": {"enable": true, "value_area": 800}},
-        "color": {"value": "#6C63FF"},
-        "shape": {"type": "circle"},
-        "opacity": {"value": 0.5, "random": true},
-        "size": {"value": 3, "random": true},
-        "line_linked": {"enable": true, "distance": 150, "color": "#6C63FF", "opacity": 0.4, "width": 1},
-        "move": {"enable": true, "speed": 2, "direction": "none", "random": true, "straight": false, "out_mode": "out", "bounce": false}
-    }
+document.addEventListener('DOMContentLoaded', (event) => {
+    particlesJS("particles-js", {
+        "particles": {
+            "number": {"value": 80, "density": {"enable": true, "value_area": 800}},
+            "color": {"value": "#6C63FF"},
+            "shape": {"type": "circle"},
+            "opacity": {"value": 0.5, "random": true},
+            "size": {"value": 3, "random": true},
+            "line_linked": {"enable": true, "distance": 150, "color": "#6C63FF", "opacity": 0.4, "width": 1},
+            "move": {"enable": true, "speed": 2, "direction": "none", "random": true, "straight": false, "out_mode": "out", "bounce": false}
+        },
+        "interactivity": {
+            "detect_on": "canvas",
+            "events": {
+                "onhover": {"enable": true, "mode": "repulse"},
+                "onclick": {"enable": true, "mode": "push"}
+            }
+        }
+    });
 });
 </script>
-""", height=0)
+<div id="particles-js"></div>
+"""
+html(particles_js, height=0)
 
-# --- App Header ---
+# --- Premium App Header ---
 st.markdown("""
 <div class="header">
     <div style="font-weight: 700; font-size: 2rem; display: flex; align-items: center; gap: 15px;">
-        <span style="font-size: 2.5rem;">✨</span>
-        <span style="text-shadow: 0 2px 4px rgba(0,0,0,0.1);">Purna Venkat AI</span>
+        <span style="font-size: 2.5rem;">😜</span>
+        <span style="text-shadow: 0 2px 4px rgba(0,0,0,0.1);">Purna Venkat</span>
     </div>
     <div style="font-weight: 300; font-size: 1rem; margin-top: 0.5rem;">
         World's Most Advanced AI Assistant
@@ -166,29 +178,32 @@ st.markdown("""
 if "messages" not in st.session_state:
     st.session_state.messages = [{
         "role": "assistant", 
-        "content": "Namaste! I'm Purna Venkat AI. How may I enlighten you today?",
+        "content": "Namaste! Nenu Mee Purna Venkat,Meku Emina Kavali Ante Chepandi. Nenu Meku Help Chesta?",
         "animation": "message-entrance"
     }]
 
-# --- Display Messages ---
+# --- Display Messages with Animations ---
 for message in st.session_state.messages:
     with st.chat_message(message["role"]):
-        st.markdown(f'<div class="{message.get("animation", "")}">{message["content"]}</div>', 
-                   unsafe_allow_html=True)
+        if "animation" in message:
+            st.markdown(f'<div class="{message["animation"]}">{message["content"]}</div>', unsafe_allow_html=True)
+        else:
+            st.markdown(message["content"])
 
-# --- Chat Input ---
-if prompt := st.chat_input("Ask the world's smartest AI..."):
-    # Add user message
+# --- Premium Chat Input ---
+if prompt := st.chat_input("Me Burralo Amina Questions Unte Ikkada Pettandi..."):
+    # Add user message with animation
     st.session_state.messages.append({
         "role": "user",
         "content": prompt,
         "animation": "message-entrance"
     })
     
+    # Display user message
     with st.chat_message("user"):
         st.markdown(f'<div class="message-entrance">{prompt}</div>', unsafe_allow_html=True)
     
-    # Show typing indicator
+    # Show premium typing indicator
     with st.chat_message("assistant"):
         typing_placeholder = st.empty()
         typing_placeholder.markdown("""
@@ -199,22 +214,41 @@ if prompt := st.chat_input("Ask the world's smartest AI..."):
         </div>
         """, unsafe_allow_html=True)
     
-    # Get AI response
-    ai_response = ai_client.generate_response(prompt)
+    # Check for creator questions FIRST
+    lower_prompt = prompt.lower()
+    creator_phrases = [
+        "who made you",
+        "who created you",
+        "who built you",
+        "who developed you",
+        "who is your creator",
+        "who designed you"
+    ]
+    
+    if any(phrase in lower_prompt for phrase in creator_phrases):
+        ai_response = "I was created by Purna Venkat sir, the visionary behind this advanced AI system."
+    else:
+        # Generate normal response for other questions
+        try:
+            model = genai.GenerativeModel('gemini-1.5-pro-latest')
+            response = model.generate_content(prompt)
+            ai_response = response.text
+        except Exception as e:
+            ai_response = f"Apologies, I encountered an error: {str(e)}"
     
     # Remove typing indicator and show response
     typing_placeholder.empty()
     with st.chat_message("assistant"):
         st.markdown(f'<div class="message-entrance">{ai_response}</div>', unsafe_allow_html=True)
     
-    # Add to history
+    # Add to conversation history
     st.session_state.messages.append({
         "role": "assistant",
         "content": ai_response,
         "animation": "message-entrance"
     })
     
-    # Auto-scroll
+    # Auto-scroll to bottom
     html("""
     <script>
         window.parent.document.querySelector('section.main').scrollTo(0, window.parent.document.querySelector('section.main').scrollHeight);
