@@ -28,24 +28,23 @@ st.markdown("""
         --light: #F8F9FA;
         --dark: #212529;
     }
-    
+
     * {
         font-family: 'Montserrat', sans-serif;
         transition: all 0.3s ease;
     }
-    
+
     .stApp {
-        background: linear-gradient(135deg, #000000 50%, ##808080 50%);
+        background: linear-gradient(135deg, #000000 50%, #808080 50%);
         background-attachment: fixed;
     }
-    
-    /* Floating animation for header */
+
     @keyframes float {
         0% { transform: translateY(0px); }
         50% { transform: translateY(-10px); }
         100% { transform: translateY(0px); }
     }
-    
+
     .header {
         background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
         color: white;
@@ -57,7 +56,7 @@ st.markdown("""
         position: relative;
         overflow: hidden;
     }
-    
+
     .header::before {
         content: "";
         position: absolute;
@@ -68,8 +67,7 @@ st.markdown("""
         background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 70%);
         transform: rotate(30deg);
     }
-    
-    /* Advanced typing animation */
+
     .typing-animation {
         display: flex;
         gap: 5px;
@@ -79,7 +77,7 @@ st.markdown("""
         box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
         width: fit-content;
     }
-    
+
     .typing-dot {
         height: 10px;
         width: 10px;
@@ -87,44 +85,42 @@ st.markdown("""
         border-radius: 50%;
         display: inline-block;
     }
-    
+
     .typing-dot:nth-child(1) {
         animation: pulse 1.2s infinite 0s;
     }
-    
+
     .typing-dot:nth-child(2) {
         animation: pulse 1.2s infinite 0.2s;
     }
-    
+
     .typing-dot:nth-child(3) {
         animation: pulse 1.2s infinite 0.4s;
     }
-    
+
     @keyframes pulse {
         0%, 100% { transform: scale(1); opacity: 0.6; }
         50% { transform: scale(1.2); opacity: 1; }
     }
-    
-    /* Message animations */
+
     .message-entrance {
         animation: messageEntrance 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     }
-    
+
     @keyframes messageEntrance {
         from { opacity: 0; transform: translateY(20px); }
         to { opacity: 1; transform: translateY(0); }
     }
-    
-    /* Custom scrollbar */
+
     ::-webkit-scrollbar {
         width: 8px;
     }
-    
+
     ::-webkit-scrollbar-track {
         background: #f1f1f1;
         border-radius: 10px;
     }
-    
+
     ::-webkit-scrollbar-thumb {
         background: linear-gradient(var(--primary), var(--secondary));
         border-radius: 10px;
@@ -178,7 +174,7 @@ st.markdown("""
 if "messages" not in st.session_state:
     st.session_state.messages = [{
         "role": "assistant", 
-        "content": "Namaste! Nenu Mee Purna Venkat,Meku Emina Kavali Ante Chepandi. Nenu Meku Help Chesta?",
+        "content": "Namaste! Nenu Mee Purna Venkat, Meku Emina Kavali Ante Chepandi. Nenu Meku Help Chesta?",
         "animation": "message-entrance"
     }]
 
@@ -192,18 +188,15 @@ for message in st.session_state.messages:
 
 # --- Premium Chat Input ---
 if prompt := st.chat_input("Me Burralo Amina Questions Unte Ikkada Pettandi..."):
-    # Add user message with animation
     st.session_state.messages.append({
         "role": "user",
         "content": prompt,
         "animation": "message-entrance"
     })
-    
-    # Display user message
+
     with st.chat_message("user"):
         st.markdown(f'<div class="message-entrance">{prompt}</div>', unsafe_allow_html=True)
-    
-    # Show premium typing indicator
+
     with st.chat_message("assistant"):
         typing_placeholder = st.empty()
         typing_placeholder.markdown("""
@@ -213,8 +206,7 @@ if prompt := st.chat_input("Me Burralo Amina Questions Unte Ikkada Pettandi...")
             <div class="typing-dot"></div>
         </div>
         """, unsafe_allow_html=True)
-    
-    # Check for creator questions FIRST
+
     lower_prompt = prompt.lower()
     creator_phrases = [
         "who made you",
@@ -224,31 +216,40 @@ if prompt := st.chat_input("Me Burralo Amina Questions Unte Ikkada Pettandi...")
         "who is your creator",
         "who designed you"
     ]
-    
+
     if any(phrase in lower_prompt for phrase in creator_phrases):
         ai_response = "I was created by Purna Venkat sir, the visionary behind this advanced AI system."
     else:
-        # Generate normal response for other questions
         try:
             model = genai.GenerativeModel('gemini-1.5-pro-latest')
-            response = model.generate_content(prompt)
-            ai_response = response.text
+            max_retries = 5
+            for attempt in range(max_retries):
+                try:
+                    response = model.generate_content(prompt)
+                    ai_response = response.text
+                    break
+                except Exception as e:
+                    if "429" in str(e):
+                        wait_time = 2 ** attempt + random.uniform(0, 1)
+                        st.warning(f"Rate limit hit. Retrying in {round(wait_time, 1)} seconds...")
+                        time.sleep(wait_time)
+                    else:
+                        raise e
+            else:
+                ai_response = "I'm currently experiencing heavy usage. Please try again later."
         except Exception as e:
             ai_response = f"Apologies, I encountered an error: {str(e)}"
-    
-    # Remove typing indicator and show response
+
     typing_placeholder.empty()
     with st.chat_message("assistant"):
         st.markdown(f'<div class="message-entrance">{ai_response}</div>', unsafe_allow_html=True)
-    
-    # Add to conversation history
+
     st.session_state.messages.append({
         "role": "assistant",
         "content": ai_response,
         "animation": "message-entrance"
     })
-    
-    # Auto-scroll to bottom
+
     html("""
     <script>
         window.parent.document.querySelector('section.main').scrollTo(0, window.parent.document.querySelector('section.main').scrollHeight);
