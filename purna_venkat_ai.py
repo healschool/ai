@@ -201,7 +201,7 @@ for message in st.session_state.messages:
             st.markdown(message["content"])
 
 # --- Premium Chat Input ---
-if prompt := st.chat_input("me burralo amina unte ekada petandi..."):
+if prompt := st.chat_input("Me Burralo Amina Unte Ikkada Pettandi..."):
     # Add user message with animation
     st.session_state.messages.append({
         "role": "user",
