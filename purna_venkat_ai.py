@@ -33,7 +33,7 @@ st.markdown("""
     }
     
     .stApp {
-        background: linear-gradient(135deg, #000000 80%, #c3cfe2 20%);
+        background: linear-gradient(135deg,  #b85042 50%, #e7e8d1 50%);
     }
     
     .typing-animation {
@@ -92,7 +92,7 @@ st.markdown("""
 # --- Initialize Chat ---
 if "messages" not in st.session_state:
     st.session_state.messages = [
-        {"role": "assistant", "content": "Namaste! I'm Purna Venkat AI. How may I help you today?"}
+        {"role": "assistant", "content": "Namaste! I'm Purna Venkat. How may I help you today?"}
     ]
 
 # --- Display Messages ---
