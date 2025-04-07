@@ -1,122 +1,232 @@
 import os
 import streamlit as st
-import google.generativeai as genai  # Correct import
+import google.generativeai as genai
 import time
 import random
+from streamlit.components.v1 import html
 
-# --- Page Configuration (MUST BE FIRST) ---
+# --- Page Configuration ---
 st.set_page_config(
     page_title="Purna Venkat AI",
-    page_icon="😂",
+    page_icon="✨",
     layout="wide",
     initial_sidebar_state="collapsed"
 )
 
 # --- Initialize Gemini Client ---
+genai.configure(api_key=os.environ['GEMINI_API_KEY'])
 
-genai.configure(api_key=os.environ['GEMINI_API_KEY'])  # Standard environment variable name  # Make sure to set this in Streamlit Secrets
-
-# --- Custom CSS Styling ---
+# --- Premium CSS Styling ---
 st.markdown("""
 <style>
-    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;700&display=swap');
     
     :root {
         --primary: #6C63FF;
         --secondary: #4D44DB;
+        --accent: #FF6B6B;
         --light: #F8F9FA;
         --dark: #212529;
     }
     
     * {
-        font-family: 'Poppins', sans-serif;
+        font-family: 'Montserrat', sans-serif;
+        transition: all 0.3s ease;
     }
     
     .stApp {
-        background: linear-gradient(135deg,  #b85042 50%, #e7e8d1 50%);
+        background: linear-gradient(135deg, #f5f7fa 0%, #e3e9f2 100%);
+        background-attachment: fixed;
     }
     
-    .typing-animation {
-        display: inline-block;
-    }
-    
-    .typing-animation span {
-        height: 8px;
-        width: 8px;
-        background-color: var(--primary);
-        border-radius: 50%;
-        display: inline-block;
-        margin: 0 2px;
-        opacity: 0.4;
-    }
-    
-    .typing-animation span:nth-child(1) {
-        animation: pulse 1s infinite;
-    }
-    
-    .typing-animation span:nth-child(2) {
-        animation: pulse 1s infinite 0.2s;
-    }
-    
-    .typing-animation span:nth-child(3) {
-        animation: pulse 1s infinite 0.4s;
-    }
-    
-    @keyframes pulse {
-        0% { opacity: 0.4; transform: scale(1); }
-        50% { opacity: 1; transform: scale(1.2); }
-        100% { opacity: 0.4; transform: scale(1); }
+    /* Floating animation for header */
+    @keyframes float {
+        0% { transform: translateY(0px); }
+        50% { transform: translateY(-10px); }
+        100% { transform: translateY(0px); }
     }
     
     .header {
         background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
         color: white;
         padding: 1.5rem;
-        border-radius: 0 0 15px 15px;
+        border-radius: 0 0 20px 20px;
         margin-bottom: 2rem;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        animation: float 6s ease-in-out infinite;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .header::before {
+        content: "";
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 70%);
+        transform: rotate(30deg);
+    }
+    
+    /* Advanced typing animation */
+    .typing-animation {
+        display: flex;
+        gap: 5px;
+        padding: 10px 15px;
+        background: white;
+        border-radius: 20px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        width: fit-content;
+    }
+    
+    .typing-dot {
+        height: 10px;
+        width: 10px;
+        background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+        border-radius: 50%;
+        display: inline-block;
+    }
+    
+    .typing-dot:nth-child(1) {
+        animation: pulse 1.2s infinite 0s;
+    }
+    
+    .typing-dot:nth-child(2) {
+        animation: pulse 1.2s infinite 0.2s;
+    }
+    
+    .typing-dot:nth-child(3) {
+        animation: pulse 1.2s infinite 0.4s;
+    }
+    
+    @keyframes pulse {
+        0%, 100% { transform: scale(1); opacity: 0.6; }
+        50% { transform: scale(1.2); opacity: 1; }
+    }
+    
+    /* Message animations */
+    .message-entrance {
+        animation: messageEntrance 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    
+    @keyframes messageEntrance {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    
+    /* Custom scrollbar */
+    ::-webkit-scrollbar {
+        width: 8px;
+    }
+    
+    ::-webkit-scrollbar-track {
+        background: #f1f1f1;
+        border-radius: 10px;
+    }
+    
+    ::-webkit-scrollbar-thumb {
+        background: linear-gradient(var(--primary), var(--secondary));
+        border-radius: 10px;
+    }
+    
+    /* Floating particles background */
+    #particles-js {
+        position: fixed;
+        width: 100%;
+        height: 100%;
+        z-index: -1;
+        top: 0;
+        left: 0;
     }
 </style>
 """, unsafe_allow_html=True)
 
-# --- App Header ---
+# --- Floating Particles Background ---
+particles_js = """
+<script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', (event) => {
+    particlesJS("particles-js", {
+        "particles": {
+            "number": {"value": 80, "density": {"enable": true, "value_area": 800}},
+            "color": {"value": "#6C63FF"},
+            "shape": {"type": "circle"},
+            "opacity": {"value": 0.5, "random": true},
+            "size": {"value": 3, "random": true},
+            "line_linked": {"enable": true, "distance": 150, "color": "#6C63FF", "opacity": 0.4, "width": 1},
+            "move": {"enable": true, "speed": 2, "direction": "none", "random": true, "straight": false, "out_mode": "out", "bounce": false}
+        },
+        "interactivity": {
+            "detect_on": "canvas",
+            "events": {
+                "onhover": {"enable": true, "mode": "repulse"},
+                "onclick": {"enable": true, "mode": "push"}
+            }
+        }
+    });
+});
+</script>
+<div id="particles-js"></div>
+"""
+html(particles_js, height=0)
+
+# --- Premium App Header ---
 st.markdown("""
 <div class="header">
-    <div style="font-weight: 600; font-size: 1.8rem; display: flex; align-items: center; gap: 10px;">
-        <span>✨</span>
-        <span>Purna Venkat AI</span>
+    <div style="font-weight: 700; font-size: 2rem; display: flex; align-items: center; gap: 15px;">
+        <span style="font-size: 2.5rem;">✨</span>
+        <span style="text-shadow: 0 2px 4px rgba(0,0,0,0.1);">Purna Venkat AI</span>
+    </div>
+    <div style="font-weight: 300; font-size: 1rem; margin-top: 0.5rem;">
+        World's Most Advanced AI Assistant
     </div>
 </div>
 """, unsafe_allow_html=True)
 
 # --- Initialize Chat ---
 if "messages" not in st.session_state:
-    st.session_state.messages = [
-        {"role": "assistant", "content": "Namaste! I'm Purna Venkat. How may I help you today?"}
-    ]
+    st.session_state.messages = [{
+        "role": "assistant", 
+        "content": "Namaste! I'm Purna Venkat AI, the world's most advanced AI assistant. How may I enlighten you today?",
+        "animation": "message-entrance"
+    }]
 
-# --- Display Messages ---
+# --- Display Messages with Animations ---
 for message in st.session_state.messages:
     with st.chat_message(message["role"]):
-        st.markdown(message["content"])
+        if "animation" in message:
+            st.markdown(f'<div class="{message["animation"]}">{message["content"]}</div>', unsafe_allow_html=True)
+        else:
+            st.markdown(message["content"])
 
-# --- Chat Input ---
-if prompt := st.chat_input("Type your message..."):
-    # Add user message
-    st.session_state.messages.append({"role": "user", "content": prompt})
-    with st.chat_message("user"):
-        st.markdown(prompt)
+# --- Premium Chat Input ---
+if prompt := st.chat_input("Ask the world's smartest AI..."):
+    # Add user message with animation
+    st.session_state.messages.append({
+        "role": "user",
+        "content": prompt,
+        "animation": "message-entrance"
+    })
     
-    # Show typing indicator
+    # Display user message
+    with st.chat_message("user"):
+        st.markdown(f'<div class="message-entrance">{prompt}</div>', unsafe_allow_html=True)
+    
+    # Show premium typing indicator
     with st.chat_message("assistant"):
         typing_placeholder = st.empty()
         typing_placeholder.markdown("""
         <div class="typing-animation">
-            <span></span>
-            <span></span>
-            <span></span>
+            <div class="typing-dot"></div>
+            <div class="typing-dot"></div>
+            <div class="typing-dot"></div>
         </div>
         """, unsafe_allow_html=True)
+    
+    # Simulate thinking time with random delay
+    thinking_time = random.uniform(0.8, 1.8)
+    time.sleep(thinking_time)
     
     # Generate response
     try:
@@ -124,12 +234,23 @@ if prompt := st.chat_input("Type your message..."):
         response = model.generate_content(prompt)
         ai_response = response.text
     except Exception as e:
-        ai_response = f"Sorry, I encountered an error: {str(e)}"
+        ai_response = f"Apologies, my quantum processors encountered a glitch: {str(e)}"
     
-    # Remove typing indicator and show response
+    # Remove typing indicator and show animated response
     typing_placeholder.empty()
     with st.chat_message("assistant"):
-        st.markdown(ai_response)
+        st.markdown(f'<div class="message-entrance">{ai_response}</div>', unsafe_allow_html=True)
     
     # Add to conversation history
-    st.session_state.messages.append({"role": "assistant", "content": ai_response})
+    st.session_state.messages.append({
+        "role": "assistant",
+        "content": ai_response,
+        "animation": "message-entrance"
+    })
+    
+    # Auto-scroll to bottom
+    html("""
+    <script>
+        window.parent.document.querySelector('section.main').scrollTo(0, window.parent.document.querySelector('section.main').scrollHeight);
+    </script>
+    """, height=0)
